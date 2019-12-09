@@ -68,8 +68,8 @@ namespace BinaryTree_MovieApp.Data.Models
 
         public int CompareTo([AllowNull] Movie other)
         {
-            if (ReleaseDate < other.ReleaseDate) return -1;
-            if (ReleaseDate > other.ReleaseDate) return 1;
+            if (ReleaseDate.Date < other.ReleaseDate.Date) return -1;
+            if (ReleaseDate.Date > other.ReleaseDate.Date) return 1;
             return Title.CompareTo(other.Title);
         }
 
@@ -78,7 +78,7 @@ namespace BinaryTree_MovieApp.Data.Models
             if (other == null) return false;
 
             return (other.Title == Title
-                && other.ReleaseDate == ReleaseDate
+                && other.ReleaseDate.Date == ReleaseDate.Date
                 && other.Runtime == Runtime
                 && other.Director == Director
                 && other.Rating == Rating);
@@ -91,8 +91,19 @@ namespace BinaryTree_MovieApp.Data.Models
 
         public bool MeetsSearchCriteria(Movie searchTerm)
         {
+            
             if (searchTerm == null) return false;
-            return Title == searchTerm.Title && ReleaseDate.Year == searchTerm.ReleaseDate.Year;
+            bool match = Title.ToLower() == searchTerm.Title.ToLower() && ReleaseDate.Year == searchTerm.ReleaseDate.Year;
+
+            if (!match)
+            {
+                DateTime newDate = new DateTime(searchTerm.ReleaseDate.Year,
+                ReleaseDate.Month, ReleaseDate.Day).AddDays(1);
+
+                searchTerm.ReleaseDate = newDate;
+            }
+
+            return match;
         }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

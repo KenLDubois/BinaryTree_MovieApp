@@ -1,124 +1,140 @@
 ﻿@page "/"
 @using System.ComponentModel.DataAnnotations;
 
-<div class="jumbotron mt-5 @showFileLoadClass">
-    <h1 class="display-4">Hello, world!</h1>
-    <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
-    <hr class="my-4">
-    <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
-    <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-
-    <InputFile OnChange="HandleSelection" />
-    <p>@status</p>
+<div class="container pt-5 fixed-top fade @showFileLoadClass">
+    <div class="jumbotron mt-4 fade @showFileLoadClass pb-3">
+        <h1 class="display-4">Movie Collection App</h1>
+        <p class="lead">Welcome to the amazing movie collection app! To begin, <span class="font-weight-bold">please upload a text file with your movies.</span></p>
+        <InputFile OnChange="HandleSelection" class="form-control-file border border bg-light p-3" />
+        <p>@status</p>
+    </div>
 </div>
 
-
-<div class="row">
-    <div class="col-12">
-        <h2>Add</h2>
-        <EditForm Model="@newMovie" OnValidSubmit="@HandleValidAddSubmit">
+<nav class="navbar fixed-top navbar-light bg-light py-1">
+    <a class="navbar-brand text-black-50">Movie Collection App</a>
+    <div class="alert alert-dismissible m-0 fade @searchAlertClass" role="alert">
+        @searchAlertText
+        <button type="button" class="close" @onclick="closeSearchAlert">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="fade @showPageClass">
+        <EditForm Model="@movieSearch" OnValidSubmit="@HandleValidSearchSubmit" class="form-inline">
             <DataAnnotationsValidator />
-            <ValidationSummary />
+            @*<ValidationSummary />*@
 
-            <InputText id="title" @bind-Value="newMovie.Title" />
-            <ValidationMessage For="@(() => newMovie.Title)" />
+            <ValidationMessage For="@(() => movieSearch.Title)" />
+            <InputText id="title" class="form-control" placeholder="Search Title" @bind-Value="movieSearch.Title" />
 
-            <InputDate id="releaseDate" @bind-Value="newMovie.ReleaseDate" />
-            <InputNumber id="runtime" @bind-Value="newMovie.Runtime" />
-            <InputText id="director" @bind-Value="newMovie.Director" />
-            <InputNumber id="rating" @bind-Value="newMovie.Rating" />
 
-            <button type="submit">Submit</button>
+            <label for="releaseYear" class="ml-3 mr-1">Release Year: </label>
+            <InputNumber id="releaseYear" class="form-control" placeholder="Release Year" @bind-Value="movieSearch.Year" />
+            <ValidationMessage For="@(() => movieSearch.Year)" />
+
+            <button type="submit" class="btn btn-outline-secondary ml-2">Search</button>
 
         </EditForm>
     </div>
-    <div class="col-12">
-        <h2>Search</h2>
-        <EditForm Model="@movieSearch" OnValidSubmit="@HandleValidSearchSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+</nav>
 
-            <InputText id="title" @bind-Value="movieSearch.Title" />
-            <InputNumber id="releaseYear" @bind-Value="movieSearch.Year" />
+<div class="p-4 pt-5 sidebar text-light fade @showPageClass">
+    <EditForm Model="@newMovie" OnValidSubmit="@HandleValidAddSubmit" class="mt-4">
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+        <p class="font-weight-bold">
+            Add New Movie
+        </p>
+        <label for="title">Title</label>
+        <InputText id="title" class="form-control" placeholder="New Movie Title" @bind-Value="newMovie.Title" />
+        <ValidationMessage For="@(() => newMovie.Title)" />
 
-            <button type="submit">Submit</button>
+        <label for="releaseDate" class="mt-2">Release Date</label>
+        <InputDate id="releaseDate" class="form-control" @bind-Value="newMovie.ReleaseDate" />
+        <ValidationMessage For="@(() => newMovie.ReleaseDate)" />
 
-        </EditForm>
-        <div class="alert alert-dismissible fade @searchAlertClass" role="alert">
-            @searchAlertText
-            <button type="button" class="close" @onclick="closeSearchAlert">
-                <span aria-hidden="true">&times;</span>
-            </button>
+        <label for="runtime" class="mt-2">Runtime:</label>
+        <InputNumber id="runtime" class="form-control" @bind-Value="newMovie.Runtime" />
+        <ValidationMessage For="@(() => newMovie.Runtime)" />
+
+        <label for="director" class="mt-2">Director</label>
+        <InputText id="director" class="form-control" placeholder="Director Name" @bind-Value="newMovie.Director" />
+        <ValidationMessage For="@(() => newMovie.Director)" />
+
+        <label for="releaseDate" class="mt-2">Rating</label>
+        <InputNumber id="rating" class="form-control" @bind-Value="newMovie.Rating" />
+        <ValidationMessage For="@(() => newMovie.Rating)" />
+
+        <button class="btn btn-primary btn-block mt-3" type="submit">Add Movie</button>
+
+    </EditForm>
+</div>
+<div class="container-fluid pt-5 fade @showPageClass">
+    <div class="row pt-4">
+        <div class="col-12 p-3">
+
+            @for (int i = 1; i <= getBTreeHeight(); i++)
+            {
+                <div class="d-flex flex-row justify-content-around pb-4">
+                    @for (int j = 1; j <= getNodesInRow(i); j++)
+                    {
+                        @if (getNodeIndexByPosition(i, j) < bTreeTraversal.Count && bTreeTraversal[getNodeIndexByPosition(i, j)] != null)
+                        {
+                            <div class="text-center border @nodeSearchClass(bTreeTraversal[getNodeIndexByPosition(i, j)]) p-3" style="width: 100px;">
+                                <span class="font-weight-bold">
+                                    @bTreeTraversal[getNodeIndexByPosition(i, j)].ReleaseDate.Year.ToString()
+                                </span>
+                                <br />
+                                @bTreeTraversal[getNodeIndexByPosition(i, j)].Title
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center border border-ligth bg-light p-3" style="width: 100px;">
+
+                            </div>
+                        }
+
+                    }
+                </div>
+            }
         </div>
     </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-
-        @for (int i = 1; i <= getBTreeHeight(); i++)
-        {
-            <div class="d-flex flex-row justify-content-around pb-4">
-
-            </div>
-        }
-
-    </div>
-
-    <hr />
-
-    <div class="col-12">
-
-    </div>
-
-    <div class="col-12">
-        @for (int i = 1; i <= getBTreeHeight(); i++)
-        {
-            <div class="d-flex flex-row justify-content-around pb-4">
-                @for (int j = 1; j <= getNodesInRow(i); j++)
+    <div class="row p-5 bg-light text-secondary">
+            <div class="col-6">
+                <p class="lead text-black-50">
+                    Movies (Depth-first)
+                </p>
+                <hr />
+                @if (depthTraveral != null && depthTraveral.Count > 0)
                 {
-                    @if (getNodeIndexByPosition(i, j) < bTreeTraversal.Count && bTreeTraversal[getNodeIndexByPosition(i, j)] != null)
+                    foreach (Movie movie in depthTraveral)
                     {
-                        <div class="text-center border @nodeSearchClass(bTreeTraversal[getNodeIndexByPosition(i, j)]) p-3" style="width: 100px;">
-                            <span class="font-weight-bold">
-                                @bTreeTraversal[getNodeIndexByPosition(i, j)].ReleaseDate.Year.ToString()
-                            </span>
-                            <br />
-                            @bTreeTraversal[getNodeIndexByPosition(i, j)].Title
-                        </div>
+                        <p class="@listSearchClass(movie)">
+                            @movie.Title (@movie.ReleaseDate.Year)
+                        </p>
                     }
-                    else
-                    {
-                        <div class="text-center border border-ligth bg-light p-3" style="width: 100px;">
-
-                        </div>
-                    }
-
                 }
             </div>
-        }
-    </div>
+            <div class="col-6">
+                <p class="lead text-black-50">Duplicates</p>
+                <hr />
+                @if (duplicates != null && duplicates.Count > 0)
+                {
+                    foreach (Movie movie in duplicates)
+                    {
+                        <p>
+                            @movie.Title (@movie.ReleaseDate.Year)
+                        </p>
+                    }
+                }
+            </div>
+        
+            <div class="col-12 mt-4">
+                <p class="lead text-black-50">Depth-first Traversal string</p>
+                <hr />
+                @movieBTree.ToString()
+            </div>
 
-    <div class="col-4">
-        <p class="font-weight-bold">Traversal string</p>
-        <hr />
-        @movieBTree.ToString()
-    </div>
-    <div class="col-4">
-        <p class="font-weight-bold">Duplicates</p>
-        <hr />
-        @if (duplicates != null && duplicates.Count > 0)
-        {
-            foreach (Movie movie in duplicates)
-            {
-                <p>
-                    @movie.Title |
-                    <span class="font-italic">
-                        @movie.ReleaseDate.Year.ToString()
-                    </span>
-                </p>
-            }
-        }
     </div>
 </div>
 
@@ -129,6 +145,12 @@
         return "border-info";
     }
 
+    private string listSearchClass(Movie movie)
+    {
+        if (movie.Equals(movieSearchResult)) return "text-info font-weight-bold";
+        return "";
+    }
+
     private void closeSearchAlert()
     {
         searchAlertClass = "hide";
@@ -136,7 +158,8 @@
 
     private void showFileLoad(bool show)
     {
-        showFileLoadClass =  show ? "" : "d-none";
+        showFileLoadClass = show ? "show" : "hide";
+        showPageClass = show ? "hide" : "show";
     }
 
 }
@@ -145,8 +168,8 @@
 
     string status;
 
-    private string showFileLoadClass = "";
-    private string showPageClass = "d-none";
+    private string showFileLoadClass = "show";
+    private string showPageClass = "hide";
 
     private string searchAlertClass = "hide";
     private string searchAlertText = "Nothing to see here.";
@@ -154,6 +177,8 @@
     private string addDataModalClass = "show";
 
     List<Movie> bTreeTraversal = new List<Movie>();
+    List<Movie> depthTraveral = new List<Movie>();
+
     List<Movie> duplicates = new List<Movie>();
 
     BinaryTree<Movie> movieBTree = new BinaryTree<Movie>();
@@ -167,7 +192,7 @@
     private class MovieSearch
     {
         [Required]
-        public int Year { get; set; }
+        public int Year { get; set; } = DateTime.Now.Year;
         [Required]
         public string Title { get; set; }
     }
@@ -224,8 +249,10 @@
 
             movieBTree = new BinaryTree<Movie>(movies, out duplicates);
 
-
             bTreeTraversal = movieBTree.GetNodes(false);
+            depthTraveral = movieBTree.GetNodes(true);
+
+            showFileLoad(false);
         }
     }
 
@@ -239,6 +266,7 @@
         if (addMovie)
         {
             bTreeTraversal = movieBTree.GetNodes(false);
+            depthTraveral = movieBTree.GetNodes(true);
 
         }
         else
