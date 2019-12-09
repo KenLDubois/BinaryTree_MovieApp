@@ -1,0 +1,269 @@
+﻿@page "/"
+@using System.ComponentModel.DataAnnotations;
+
+<div class="jumbotron mt-5 @showFileLoadClass">
+    <h1 class="display-4">Hello, world!</h1>
+    <p class="lead">This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+    <hr class="my-4">
+    <p>It uses utility classes for typography and spacing to space content out within the larger container.</p>
+    <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
+
+    <InputFile OnChange="HandleSelection" />
+    <p>@status</p>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <h2>Add</h2>
+        <EditForm Model="@newMovie" OnValidSubmit="@HandleValidAddSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText id="title" @bind-Value="newMovie.Title" />
+            <ValidationMessage For="@(() => newMovie.Title)" />
+
+            <InputDate id="releaseDate" @bind-Value="newMovie.ReleaseDate" />
+            <InputNumber id="runtime" @bind-Value="newMovie.Runtime" />
+            <InputText id="director" @bind-Value="newMovie.Director" />
+            <InputNumber id="rating" @bind-Value="newMovie.Rating" />
+
+            <button type="submit">Submit</button>
+
+        </EditForm>
+    </div>
+    <div class="col-12">
+        <h2>Search</h2>
+        <EditForm Model="@movieSearch" OnValidSubmit="@HandleValidSearchSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText id="title" @bind-Value="movieSearch.Title" />
+            <InputNumber id="releaseYear" @bind-Value="movieSearch.Year" />
+
+            <button type="submit">Submit</button>
+
+        </EditForm>
+        <div class="alert alert-dismissible fade @searchAlertClass" role="alert">
+            @searchAlertText
+            <button type="button" class="close" @onclick="closeSearchAlert">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+
+        @for (int i = 1; i <= getBTreeHeight(); i++)
+        {
+            <div class="d-flex flex-row justify-content-around pb-4">
+
+            </div>
+        }
+
+    </div>
+
+    <hr />
+
+    <div class="col-12">
+
+    </div>
+
+    <div class="col-12">
+        @for (int i = 1; i <= getBTreeHeight(); i++)
+        {
+            <div class="d-flex flex-row justify-content-around pb-4">
+                @for (int j = 1; j <= getNodesInRow(i); j++)
+                {
+                    @if (getNodeIndexByPosition(i, j) < bTreeTraversal.Count && bTreeTraversal[getNodeIndexByPosition(i, j)] != null)
+                    {
+                        <div class="text-center border @nodeSearchClass(bTreeTraversal[getNodeIndexByPosition(i, j)]) p-3" style="width: 100px;">
+                            <span class="font-weight-bold">
+                                @bTreeTraversal[getNodeIndexByPosition(i, j)].ReleaseDate.Year.ToString()
+                            </span>
+                            <br />
+                            @bTreeTraversal[getNodeIndexByPosition(i, j)].Title
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center border border-ligth bg-light p-3" style="width: 100px;">
+
+                        </div>
+                    }
+
+                }
+            </div>
+        }
+    </div>
+
+    <div class="col-4">
+        <p class="font-weight-bold">Traversal string</p>
+        <hr />
+        @movieBTree.ToString()
+    </div>
+    <div class="col-4">
+        <p class="font-weight-bold">Duplicates</p>
+        <hr />
+        @if (duplicates != null && duplicates.Count > 0)
+        {
+            foreach (Movie movie in duplicates)
+            {
+                <p>
+                    @movie.Title |
+                    <span class="font-italic">
+                        @movie.ReleaseDate.Year.ToString()
+                    </span>
+                </p>
+            }
+        }
+    </div>
+</div>
+
+@functions {
+    private string nodeSearchClass(Movie movie)
+    {
+        if (movie.Equals(movieSearchResult)) return "text-light bg-info";
+        return "border-info";
+    }
+
+    private void closeSearchAlert()
+    {
+        searchAlertClass = "hide";
+    }
+
+    private void showFileLoad(bool show)
+    {
+        showFileLoadClass =  show ? "" : "d-none";
+    }
+
+}
+
+@code {
+
+    string status;
+
+    private string showFileLoadClass = "";
+    private string showPageClass = "d-none";
+
+    private string searchAlertClass = "hide";
+    private string searchAlertText = "Nothing to see here.";
+
+    private string addDataModalClass = "show";
+
+    List<Movie> bTreeTraversal = new List<Movie>();
+    List<Movie> duplicates = new List<Movie>();
+
+    BinaryTree<Movie> movieBTree = new BinaryTree<Movie>();
+
+    private Movie newMovie = new Movie();
+
+    private Movie movieSearchResult = null;
+
+    private MovieSearch movieSearch = new MovieSearch();
+
+    private class MovieSearch
+    {
+        [Required]
+        public int Year { get; set; }
+        [Required]
+        public string Title { get; set; }
+    }
+
+    public int getBTreeHeight()
+    {
+        if (bTreeTraversal.Count <= 0) return 0;
+        return (int)Math.Floor(Math.Log(bTreeTraversal.Count, 2)) + 1;
+    }
+
+    public int getNodesInRow(int row)
+    {
+        if (row == 0) return 0;
+        return (int)(Math.Pow(2d, (double)row) / 2);
+    }
+
+    public int getMaxNodes(int height)
+    {
+        if (height == 0) return 0;
+        return (int)(Math.Pow(2d, (double)height) - 1);
+    }
+
+    public int getMaxNodes()
+    {
+        int height = getBTreeHeight();
+        if (height == 0) return 0;
+        return (int)(Math.Pow(2d, (double)height) - 1);
+    }
+
+    public int getNodeIndexByPosition(int row, int col)
+    {
+        if (row == 1) return 0;
+
+        int prevLevel = getMaxNodes(row - 1);
+        return prevLevel + col - 1;
+    }
+
+    async Task HandleSelection(IFileListEntry[] files)
+    {
+        var file = files.FirstOrDefault();
+        if (file != null)
+        {
+
+            // Just load into .NET memory to show it can be done
+            // Alternatively it could be saved to disk, or parsed in memory, or similar
+            var ms = new MemoryStream();
+            await file.Data.CopyToAsync(ms);
+
+            status = $"Finished loading {file.Size} bytes from {file.Name}";
+
+            MovieIOService movieIO = new MovieIOService();
+
+            List<Movie> movies = movieIO.LoadMoviesFromMemoryStream(ms);
+
+            movieBTree = new BinaryTree<Movie>(movies, out duplicates);
+
+
+            bTreeTraversal = movieBTree.GetNodes(false);
+        }
+    }
+
+    private void HandleValidAddSubmit()
+    {
+
+        Movie movieToAdd = new Movie(newMovie.Title, newMovie.ReleaseDate, newMovie.Runtime, newMovie.Director, newMovie.Rating);
+
+        bool addMovie = movieBTree.Add(movieToAdd);
+
+        if (addMovie)
+        {
+            bTreeTraversal = movieBTree.GetNodes(false);
+
+        }
+        else
+        {
+            duplicates.Add(movieToAdd);
+        }
+
+    }
+
+    private void HandleValidSearchSubmit()
+    {
+
+        Movie movieToFind = new Movie(movieSearch.Title, new DateTime(movieSearch.Year, 1, 1), 0, "", 0f);
+
+        movieSearchResult = movieBTree.Search(movieToFind);
+
+        if (movieSearchResult == null)
+        {
+            searchAlertClass = "show  alert-warning";
+            searchAlertText = "You do not own this movie.";
+        }
+        else
+        {
+            searchAlertClass = "show  alert-success";
+            searchAlertText = "You own this movie!";
+        }
+    }
+}
