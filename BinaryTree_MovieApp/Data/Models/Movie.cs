@@ -70,7 +70,7 @@ namespace BinaryTree_MovieApp.Data.Models
         {
             if (ReleaseDate.Date < other.ReleaseDate.Date) return -1;
             if (ReleaseDate.Date > other.ReleaseDate.Date) return 1;
-            return Title.CompareTo(other.Title);
+            return Title.ToLower().CompareTo(other.Title.ToLower());
         }
 
         public bool Equals([AllowNull] Movie other)
@@ -91,19 +91,8 @@ namespace BinaryTree_MovieApp.Data.Models
 
         public bool MeetsSearchCriteria(Movie searchTerm)
         {
-            
             if (searchTerm == null) return false;
-            bool match = Title.ToLower() == searchTerm.Title.ToLower() && ReleaseDate.Year == searchTerm.ReleaseDate.Year;
-
-            if (!match)
-            {
-                DateTime newDate = new DateTime(searchTerm.ReleaseDate.Year,
-                ReleaseDate.Month, ReleaseDate.Day).AddDays(1);
-
-                searchTerm.ReleaseDate = newDate;
-            }
-
-            return match;
+            return searchTerm.Title.ToLower() == Title.ToLower() && searchTerm.ReleaseDate.Year == ReleaseDate.Year;
         }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
